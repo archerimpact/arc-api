@@ -6,26 +6,26 @@
             "attributes": [
                 {
                     "key1": "value1",
-                    "claims": [
+                    "sources": [
                         [
-                            "source1",
+                            "reference1",
                             "user1"
                         ],
                         [
-                            "source2",
+                            "reference2",
                             "user2"
                         ]
                     ],
                     "metadata": [
                         {
                             "metakey1": "metavalue1",
-                            "claims": [
+                            "sources": [
                                 [
-                                    "source1",
+                                    "reference1",
                                     "user1"
                                 ],
                                 [
-                                    "source2",
+                                    "reference2",
                                     "user2"
                                 ]
                             ]
@@ -43,26 +43,26 @@
             "data": [
                 {
                     "is_true": "Yes",
-                    "claims": [
+                    "sources": [
                         [
-                            "source1",
+                            "reference1",
                             "user1"
                         ],
                         [
-                            "source2",
+                            "reference2",
                             "user2"
                         ]
                     ]
                 },
                 {
                     "metakey2": "metavalue2",
-                    "claims": [
+                    "sources": [
                         [
-                            "source1",
+                            "reference1",
                             "user1"
                         ],
                         [
-                            "source2",
+                            "reference2",
                             "user2"
                         ]
                     ]
