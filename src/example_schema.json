@@ -1,0 +1,73 @@
+{
+    "nodes": [
+        {
+            "id": "arch1",
+            "label": "Joseph Kony",
+            "attributes": [
+                {
+                    "key1": "value1",
+                    "claims": [
+                        [
+                            "source1",
+                            "user1"
+                        ],
+                        [
+                            "source2",
+                            "user2"
+                        ]
+                    ],
+                    "metadata": [
+                        {
+                            "metakey1": "metavalue1",
+                            "claims": [
+                                [
+                                    "source1",
+                                    "user1"
+                                ],
+                                [
+                                    "source2",
+                                    "user2"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "links": [
+        {
+            "subjectID": "arch1",
+            "objectID": "arch2",
+            "predicate": "has_brother",
+            "data": [
+                {
+                    "is_true": "Yes",
+                    "claims": [
+                        [
+                            "source1",
+                            "user1"
+                        ],
+                        [
+                            "source2",
+                            "user2"
+                        ]
+                    ]
+                },
+                {
+                    "metakey2": "metavalue2",
+                    "claims": [
+                        [
+                            "source1",
+                            "user1"
+                        ],
+                        [
+                            "source2",
+                            "user2"
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
+}
