@@ -1,9 +1,9 @@
 const { Connection, query, db } = require('stardog')
- 
+
 const conn = new Connection({
-  username: 'admin',
-  password: 'admin',
-  endpoint: 'http://localhost:5820',
+    username: 'admin',
+    password: 'admin',
+    endpoint: 'http://localhost:5820',
 })
 
 const PREFIX =
@@ -57,22 +57,22 @@ async function create_entity(id, name) {
 }
 
 async function connect_entities(subject_id, object_id, claim_id) {
-    const SUBJ_TO_CLAIM = generate_insert_triple(subject_id, 'has_claim', object=claim_id) + ' WHERE {}'
-    const CLAIM_TO_OBJ  = generate_insert_triple(claim_id, 'makes_claim_about', object=object_id) + ' WHERE {}'
+    const SUBJ_TO_CLAIM = generate_insert_triple(subject_id, 'has_claim', object = claim_id) + ' WHERE {}'
+    const CLAIM_TO_OBJ = generate_insert_triple(claim_id, 'makes_claim_about', object = object_id) + ' WHERE {}'
 
-    let insert1 = await query.execute(conn, 'myDB', SUBJ_TO_CLAIM, {} )
-    let insert2 = await query.execute(conn, 'myDB', CLAIM_TO_OBJ, {} )
+    let insert1 = await query.execute(conn, 'myDB', SUBJ_TO_CLAIM, {})
+    let insert2 = await query.execute(conn, 'myDB', CLAIM_TO_OBJ, {})
 }
 
 async function find_all_outgoing_relations(subject_id) {
-    const OUT_CLAIMS = 
+    const OUT_CLAIMS =
         `${PREFIX}
         SELECT *
         WHERE {
             arc:${subject_id} org:has_claim ?claim .
             ?claim org:makes_claim_about ?obj
         }`
-    
+
     const response = await query.execute(conn, 'myDB', OUT_CLAIMS)
     return response.body.results.bindings
 }
@@ -90,7 +90,6 @@ async function seed() {
     // let out = await find_all_outgoing_relations(0)
 
 }
-
 
 async function main() {
     await seed()
