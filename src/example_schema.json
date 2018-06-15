@@ -5,7 +5,8 @@
             "label": "Joseph Kony",
             "attributes": [
                 {
-                    "key1": "value1",
+                    "key": "key1",
+                    "value": "value1",
                     "sources": [
                         [
                             "reference1",
@@ -18,7 +19,8 @@
                     ],
                     "metadata": [
                         {
-                            "metakey1": "metavalue1",
+                            "metakey": "metakey1",
+                            "metavalue": "metavalue1",
                             "sources": [
                                 [
                                     "reference1",
@@ -42,7 +44,8 @@
             "predicate": "has_brother",
             "data": [
                 {
-                    "is_true": "Yes",
+                    "metakey": "is_true",
+                    "metavalue": "Yes",
                     "sources": [
                         [
                             "reference1",
@@ -55,7 +58,8 @@
                     ]
                 },
                 {
-                    "metakey2": "metavalue2",
+                    "metakey": "metakey1",
+                    "metavalue": "metavalue1",
                     "sources": [
                         [
                             "reference1",
