@@ -1,6 +1,5 @@
 class Q {
     constructor() {
-        this.q = ''
         this.prefixes = ['PREFIX arc: <http://ont/>', 'PREFIX org: <http://org#>']
         this.select_str = ''
         this.inserts = []
