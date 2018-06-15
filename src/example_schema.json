@@ -3,6 +3,7 @@
         {
             "id": "arch1",
             "label": "Joseph Kony",
+            "type": "Person",
             "attributes": [
                 {
                     "key": "key1",

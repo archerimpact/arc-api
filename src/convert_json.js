@@ -17,7 +17,8 @@ async function convert(json_object) {
 
         var attributes = entity["attributes"]
         attributes.forEach(attr => {
-            
+            var claim_id = getNewClaimID()
+            stdog.add_claim_key_and_value(claim_id, )
         });
     });
 
