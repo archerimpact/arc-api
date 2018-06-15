@@ -1,3 +1,5 @@
+'use strict'
+
 const stdog = require('./index')
 
 var local_to_global_id_map;
@@ -14,16 +16,39 @@ async function convert(json_object) {
     nodes.forEach(entity => {
         var entity_id = entity["id"]
         stdog.create_entity(entity_id, entity["label"]);
+        //TODO: add typing
 
         var attributes = entity["attributes"]
         attributes.forEach(attr => {
             var claim_id = getNewClaimID()
-            stdog.add_claim_key_and_value(claim_id, )
+            stdog.add_entity_claim(claim_id, entity_id)
+            stdog.add_claim_key_and_value(claim_id, attr["key"], attr["value"])
+
+            var attr_sources = attr["sources"]
+            attr_sources.forEach(src_tuple => {
+                stdog.add_claim_source(claim_id, src_tuple[0])
+                //TODO: add claim user
+            });
+
+            var attr_metadata = attr["metadata"]
+            attr_metadata.forEach(metadata => {
+                //TODO: figure out which claim_id to use, then add metadata
+                
+            });
         });
     });
 
     links.forEach(link => {
+        var claim_id = getNewClaimID()
+        //TODO: figure out wtf to do with id's
 
+        strdog.connect_entities(link["subjectID"],link["objectID"], claim_id)
+        strdog.add_claim_relation(claim_id, link["predicate"])
+
+        var data = link["data"]
+        data.forEach(datapoint => {
+            //TODO: handle metadata addition
+        });
     });
     
 }
