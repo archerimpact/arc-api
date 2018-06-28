@@ -1,10 +1,11 @@
 'use strict'
 
-const stdog = require('./index')
+const stdog = require('./stardog-connectors/query_construction')
+const uuid = require('node-uuid')
 
 var local_to_global_id_map;
 
-async function convert(json_object) {
+module.exports.convert = async function(json_object) {
     //parses json in format specified in src/example_schema.json
 
     var nodes = json_object["nodes"];
@@ -13,15 +14,15 @@ async function convert(json_object) {
     links = links.map(fixLinkID);
     //load in links and nodes from JSON object. Fix id's to match global archer id's
 
-    nodes.forEach(entity => {
-        var entity_id = entity["id"]
-        stdog.create_entity(entity_id, entity["label"]);
+    await nodes.forEach(async (entity) => {
+        const entity_id = 'entity' + entity["id"]
+        stdog.create_entity(entity_id, entity["label"])
         //TODO: add typing
 
         var attributes = entity["attributes"]
         attributes.forEach(attr => {
-            var claim_id = getNewClaimID()
-            stdog.add_entity_claim(claim_id, entity_id)
+            const claim_id = get_new_claim_id()
+            stdog.add_property_claim(claim_id, entity_id)
             stdog.add_claim_key_and_value(claim_id, attr["key"], attr["value"])
 
             var attr_sources = attr["sources"]
@@ -36,8 +37,10 @@ async function convert(json_object) {
                 
             });
         });
-    });
 
+        await stdog.execute()
+    });
+/*
     links.forEach(link => {
         var claim_id = getNewClaimID()
         //TODO: figure out wtf to do with id's
@@ -50,7 +53,7 @@ async function convert(json_object) {
             //TODO: handle metadata addition
         });
     });
-    
+*/
 }
 
 function fixNodeID(node) {
@@ -64,6 +67,12 @@ function fixLinkID(link) {
     return link;
 }
 
-function getNewClaimID() {
-    return 1;
+function get_new_claim_id() {
+    const claim_id = 'claim' + uuid.v4()
+    return claim_id
+}
+
+function get_new_entity_id() {
+    const entity_id = 'entity' + uuid.v4()
+    return entity_id
 }

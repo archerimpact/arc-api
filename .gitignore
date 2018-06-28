@@ -1,3 +1,5 @@
+src/ofac/sdn.json
+
 # Logs
 logs
 *.log
