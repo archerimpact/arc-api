@@ -2,35 +2,24 @@
 
 const OFAC = require('./ofac/sanctionsexplorer-parser')
 const converter = require('./convert_json')
-
-async function seed() {
-    let joseph = await create_entity('2', 'HEINTZ, Tyler')
-    let ali = await create_entity('3', 'PATEL, Nikhil')
-
-    console.log(joseph)
-
-    const c = 'claim2'
-    let connect = await connect_entities('2', '3', c)
-    let r = await add_claim_relation(c, 'IS_COWORKER_OF')
-    let kv = await add_claim_key_and_value(c, 'START_DATE', '01/01/16')
-    let src = await add_claim_source(c, 'ARCHERLEAKS:90')
-
-    // let sa = await select_all()
-    let out = await find_all_outgoing_relations('2')
-    console.log(out)
-}
+const qc = require('./stardog-connectors/query_construction')
 
 async function load_ofac() {
     let entries = OFAC.getOFAC()
-    entries = entries.slice(0, 10)
     console.log('entries are done')
-    entries.map(e => converter.convert(e))
-    console.log('loaded all ' + entries.length)
+    converter.convert(entries)
 }
 
+const TEST_ENTITY_ID = 'bc0076c4-59cd-4da1-ae77-2b8b9ecadde0'
 async function main() {
+    // const r = await qc.get_linked_entities(TEST_ENTITY_ID)
+    // console.log(JSON.stringify(r, null, 2))
+
+    const e = await converter.toJSON(TEST_ENTITY_ID)
+    console.log(JSON.stringify(e, null, 2))
+
     // await seed()
-    await load_ofac()
+    // await load_ofac()
 }
 
 main()

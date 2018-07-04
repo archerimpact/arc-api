@@ -1,6 +1,6 @@
 const { Connection, query, db } = require('stardog')
 const Q = require('./RDFQuery')
-const DEBUG = false
+const DEBUG = true
 
 const conn = new Connection({
     username: 'admin',
@@ -14,8 +14,7 @@ Q.prototype.send = async function() {
     if (DEBUG) {
         console.log(query_string)
     }
-    CURRENT = new Q()   /* this must go here! Since it's async, CURRENT needs to be cleared before this long call is made. */
-    let response = await query.execute(conn, 'myDB', query_string, {})
+    const response = await query.execute(conn, 'myDB', query_string)
     
     if (response.ok !== true) {
         console.log(query_string)
@@ -26,6 +25,7 @@ Q.prototype.send = async function() {
 }
 
 let CURRENT = new Q()
+module.exports.current = CURRENT
 
 module.exports.add_property_claim = async function(claim_id, entity_id) {
     CURRENT.insert_triple(entity_id, 'has_claimed_property', claim_id)
@@ -56,23 +56,61 @@ module.exports.connect_entities = async function(subject_id, object_id, claim_id
 }
 
 module.exports.execute = async function() {
-    // console.log('executing...')
-    // console.log(CURRENT)
     const response = await CURRENT.send()
-    // console.log('\n\n\n\n Current value = ')
-    // console.log(CURRENT)
     return response
 }
 
-/*
-module.exports.select_all = async function() {
-    CURRENT
-        .select('*')
-        .where('{ ?s ?p ?o }')
-
-    return response.body.results.bindings
+module.exports.id_to_uri = async function(id) {
+    return 'entity' + id
 }
 
+/*
+ * Retrieval/Querying.
+ * All of these functions send their query upon function call.
+ */
+
+ module.exports.get_label = async function(entity_id) {
+    const response = await (new Q())
+        .selectStar()
+        .where('entity' + entity_id, 'has_name', '?name')
+        .send()
+
+    return response
+ }
+
+module.exports.get_claims = async function(entity_id) {
+    const response = await (new Q())
+        .selectStar()
+        .where('entity' + entity_id, 'has_claimed_property', '?claim_id')
+        .where('?claim_id', 'has_claim_type', '?claim_type')
+        .where('?claim_id', 'claim_value_of', '?claim_value')
+        .send()
+
+    return response
+}
+
+module.exports.get_linked_entities = async function(entity_id) {
+    const response = await (new Q())
+        .selectStar()
+        .where('entity' + entity_id, 'has_claim', '?claim_id')
+        .where('?claim_id', 'makes_claim_about', '?entity_id')
+        .where('?entity_id', 'has_name', '?name')
+        .where('?claim_id', 'relationship_type', '?relationship')
+        .send()
+    
+    return response
+}
+
+
+module.exports.select_all = async function() {
+    const response = await (new Q())
+        .selectStar()
+        .where('?s', '?p', '?o')
+        .send()
+
+    return response
+}
+/*
 module.exports.find_all_outgoing_relations = async function(subject_id) {
     const response = await (new Q())
         .select('*')

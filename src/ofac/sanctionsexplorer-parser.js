@@ -10,12 +10,9 @@ let global_doc_id = 100000
 
 const OFAC_ARCHER_SOURCE = ['OFAC SDN', 'Archer']
 
-const TEST_ID = 6082
-
 function OFAC_TO_ARC_LINK(linkType) {
     return linkType.toUpperCase().split(' ').join('_')
 }
-
 
 module.exports.getOFAC = function() {
     sdn.forEach(entry => {
@@ -141,25 +138,40 @@ module.exports.getOFAC = function() {
                 ]
             })
 
-            entry.linked_profiles.forEach(profile => {
-                result.links.push({
-                    subjectID: gid,
-                    objectID: profile.linked_id,
-                    predicate: OFAC_TO_ARC_LINK(profile.relation_type),
-                    data: [
-                        {
-                            metakey: 'is_true',
-                            metavalue: true,
-                            sources: [ OFAC_ARCHER_SOURCE ]
-                        }
-                    ],
-                })
-            })
+        })
 
+        entry.linked_profiles.forEach(profile => {
+            const details = {
+                subjectID: gid,
+                objectID: profile.linked_id,
+                predicate: OFAC_TO_ARC_LINK(profile.relation_type),
+                data: [
+                    {
+                        metakey: 'is_true',
+                        metavalue: true,
+                        sources: [ OFAC_ARCHER_SOURCE ]
+                    }
+                ],
+            }
+            result.links.push(details)
         })
 
         results.push(result)
     })
 
-    return results
+    return zipResults(results)
+}
+
+function zipResults(results) {
+    const res = {
+        nodes: [],
+        links: [],
+    }
+
+    results.forEach(r => {
+        res.nodes = res.nodes.concat(r.nodes)
+        res.links = res.links.concat(r.links)
+    })
+
+    return res
 }

@@ -10,7 +10,17 @@ class Q {
         return this
     }
     select_triple(subject, predicate, object) {
-        this.selects.push(`${this.strconv(subject)} org:${predicate} ${this.strconv(object)}`)
+        if (!subject.startsWith('?')) {
+            subject = `${this.strconv(subject)}`
+        }
+        if (!predicate.startsWith('?')) {
+            predicate = `org:${predicate}`
+        }
+        if (!object.startsWith('?')) {
+            object = `org:${object}`
+        }
+
+        this.selects.push(`${subject} ${predicate} ${object}`)
         return this
     }
     selectStar() {
@@ -22,11 +32,17 @@ class Q {
         return this
     }
     where(subject, predicate, object) {
+        if (!subject.startsWith('?')) {
+            subject = `${this.strconv(subject)}`
+        }
         if (!predicate.startsWith('?')) {
             predicate = `org:${predicate}`
         }
+        if (!object.startsWith('?')) {
+            object = `org:${object}`
+        }
         
-        this.wheres.push(`${this.strconv(subject)} ${predicate} ${this.strconv(object)}`)
+        this.wheres.push(`${subject} ${predicate} ${object}`)
         return this
     }
     generate_query() {
@@ -34,7 +50,7 @@ class Q {
 
         let select_stmts = ''
         if (this.selects.length > 0) {
-            select_stmts = 'SELECT { ' + this.selects.join(' . ') + ' }'
+            select_stmts = 'SELECT ' + this.selects.join(' . ') + ''
         }
 
         let insert_stmts = ''
@@ -42,7 +58,7 @@ class Q {
             insert_stmts = 'INSERT DATA { ' + this.inserts.join(' . ') + ' }'
         }
 
-        const where_stmts  = ''
+        let where_stmts  = ''
         if (this.wheres.length > 0) {
             where_stmts = 'WHERE { ' + this.wheres.join(' . ') + ' }'
         }
@@ -62,7 +78,7 @@ class Q {
         if (str.startsWith(LIT_IDENTIFIER)) {
             const sliced = str.slice(LIT_IDENTIFIER.length)
             if (isNaN(Number(sliced))) {
-                return `"${sliced}"`
+                return `"${sliced.split('"').join('\\"')}"`
             } else {
                 return Number(sliced)
             }
