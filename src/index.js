@@ -27,10 +27,10 @@ async function main() {
     // const r = await converter.fromJSON(t)
     // console.log(r)
 
-    await load_ofac()
+    // await load_ofac()
 
-    // const data = await converter.nameToJSON('KONY, Joseph')
-    // console.log(JSON.stringify(data, null, 2))
+    const data = await converter.nameToJSON('KONY, Joseph')
+    console.log(JSON.stringify(data, null, 2))
     
 }
 

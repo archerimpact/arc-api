@@ -28,6 +28,16 @@ module.exports.getOFAC = function() {
             attributes: [],
         }
 
+        current_node.attributes.push({
+            key: 'OFAC List',
+            value: entry.sanctions_entries[0].list
+        })
+
+        current_node.attributes.push({
+            key: 'OFAC Program',
+            value: entry.sanctions_entries[0].program
+        })
+
         entry.identity.aliases.forEach(alias => {
             current_node.attributes.push({
                 key: 'has_alias',

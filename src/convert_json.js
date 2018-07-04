@@ -68,16 +68,16 @@ function fixNodeID(node) {
 
 function fixLinkID(link) {
     const sid = link.sourceID
-    const oid = link.targetID
+    const tid = link.targetID
 
     const mapped_sid = local_to_global_id_map[sid]
-    const mapped_oid = local_to_global_id_map[oid]
+    const mapped_tid = local_to_global_id_map[tid]
 
     if (mapped_sid) {
         link.sourceID = mapped_sid
     }
-    if (mapped_oid) {
-        link.targetID = mapped_oid
+    if (mapped_tid) {
+        link.targetID = mapped_tid
     }
 
     return link
