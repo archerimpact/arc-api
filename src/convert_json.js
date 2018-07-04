@@ -2,29 +2,28 @@
 
 const stdog = require('./stardog-connectors/query_construction')
 const uuid = require('node-uuid')
-const sleep = require('sleep')
 
 const local_to_global_id_map = {}
 
 module.exports.fromJSON = async function(json_object) {
     //parses json in format specified in src/example_schema.json
 
-    var nodes = json_object["nodes"];
-    nodes = nodes.map(fixNodeID);
-    var links = json_object["links"];
-    links = links.map(fixLinkID);
+    let nodes = json_object['nodes']
+    let links = json_object['links']
+
+    nodes = nodes.map(fixNodeID)
+    links = links.map(fixLinkID)
     console.log('Nodes and links fixed!')
 
     await nodes.forEach(entity => {
-        const entity_id = entity["id"]
-        stdog.create_entity(entity_id, entity["label"])
-        //TODO: add type
+        const entity_id = entity['id']
+        stdog.create_entity(entity_id, entity['label'], entity['type'])
 
-        var attributes = entity["attributes"]
+        const attributes = entity['attributes']
         attributes.forEach(attr => {
             const claim_id = get_new_claim_id()
             stdog.add_property_claim(claim_id, entity_id)
-            stdog.add_claim_key_and_value(claim_id, attr["key"], attr["value"])
+            stdog.add_claim_key_and_value(claim_id, attr['key'], attr['value'])
 
             // var attr_sources = attr["sources"]
             // attr_sources.forEach(src_tuple => {
@@ -37,22 +36,22 @@ module.exports.fromJSON = async function(json_object) {
             //     //TODO: figure out which claim_id to use, then add metadata
                 
             // });
-        });
-    });
+        })
+    })
 
     await stdog.execute()
 
     await links.forEach(link => {
-        var claim_id = get_new_claim_id()
+        const claim_id = get_new_claim_id()
 
-        stdog.connect_entities(link["subjectID"],link["objectID"], claim_id)
-        stdog.add_claim_relation(claim_id, link["predicate"])
+        stdog.connect_entities(link['subjectID'],link['objectID'], claim_id)
+        stdog.add_claim_relation(claim_id, link['predicate'])
 
         // var data = link["data"]
         // data.forEach(datapoint => {
         //     //TODO: handle metadata addition
         // });
-    });
+    })
 
     await stdog.execute()
     
@@ -98,10 +97,12 @@ function get_new_entity_id() {
 
 module.exports.toJSON = async function(entity_id) {
     const label_response = await stdog.get_label(entity_id)
+    const type_response = await stdog.get_type(entity_id)
     const claims_response = await stdog.get_claims(entity_id)
     const links_response = await stdog.get_linked_entities(entity_id)
 
-    const label = label_response.body.results.bindings
+    const label = label_response.body.results.bindings[0].name.value
+    const type = type_response.body.results.bindings[0].type.value
     const properties = claims_response.body.results.bindings
     const links = links_response.body.results.bindings
 
@@ -109,6 +110,7 @@ module.exports.toJSON = async function(entity_id) {
         nodes: [{
             id: entity_id,
             label: label,
+            type: type,
             attributes: [],
         }],
         links: [],
@@ -127,7 +129,7 @@ module.exports.toJSON = async function(entity_id) {
 
     links.forEach(l => {
         link_list.push({
-            claim_id: p.claim_id.value,
+            claim_id: l.claim_id.value,
             subjectID: 'http://ont/entity' + entity_id,       /* TODO this should be changed to be flexible with the namespace */
             objectID: l.entity_id.value,
             predicate: l.relationship.value

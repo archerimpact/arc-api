@@ -1,6 +1,6 @@
 const { Connection, query, db } = require('stardog')
 const Q = require('./RDFQuery')
-const DEBUG = true
+const DEBUG = false
 
 const conn = new Connection({
     username: 'admin',
@@ -17,7 +17,7 @@ Q.prototype.send = async function() {
     const response = await query.execute(conn, 'myDB', query_string)
     
     if (response.ok !== true) {
-        console.log(query_string)
+        // console.log(query_string)
         console.log(response)
     }
 
@@ -45,8 +45,9 @@ module.exports.add_claim_source = async function(claim_id, source) {
     CURRENT.insert_triple(claim_id, 'references_document', `literal:${source}`)
 }
 
-module.exports.create_entity = async function(id, name) {
+module.exports.create_entity = async function(id, name, entity_type) {
     CURRENT.insert_triple(id, 'has_name', `literal:${name}`)
+    CURRENT.insert_triple(id, 'is', entity_type)
 }
 
 module.exports.connect_entities = async function(subject_id, object_id, claim_id) {
@@ -69,14 +70,23 @@ module.exports.id_to_uri = async function(id) {
  * All of these functions send their query upon function call.
  */
 
- module.exports.get_label = async function(entity_id) {
+module.exports.get_label = async function(entity_id) {
     const response = await (new Q())
         .selectStar()
         .where('entity' + entity_id, 'has_name', '?name')
         .send()
 
     return response
- }
+}
+
+module.exports.get_type = async function(entity_id) {
+    const response = await (new Q())
+        .selectStar()
+        .where('entity' + entity_id, 'is', '?type')
+        .send()
+
+    return response
+}
 
 module.exports.get_claims = async function(entity_id) {
     const response = await (new Q())

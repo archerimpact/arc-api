@@ -2,12 +2,11 @@
 
 const OFAC = require('./ofac/sanctionsexplorer-parser')
 const converter = require('./convert_json')
-const qc = require('./stardog-connectors/query_construction')
 
 async function load_ofac() {
     let entries = OFAC.getOFAC()
     console.log('entries are done')
-    converter.convert(entries)
+    converter.fromJSON(entries)
 }
 
 const TEST_ENTITY_ID = 'bc0076c4-59cd-4da1-ae77-2b8b9ecadde0'
@@ -15,8 +14,8 @@ async function main() {
     // const r = await qc.get_linked_entities(TEST_ENTITY_ID)
     // console.log(JSON.stringify(r, null, 2))
 
-    const e = await converter.toJSON(TEST_ENTITY_ID)
-    console.log(JSON.stringify(e, null, 2))
+    // const e = await converter.toJSON(TEST_ENTITY_ID)
+    // console.log(JSON.stringify(e, null, 2))
 
     // await seed()
     // await load_ofac()

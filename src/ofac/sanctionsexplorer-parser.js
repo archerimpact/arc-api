@@ -86,6 +86,7 @@ module.exports.getOFAC = function() {
             const doc_node = {
                 id: ++global_doc_id,
                 label: doc.id_number,
+                type: 'document',
                 attributes: [
                     {
                         key: 'DOCUMENT_TYPE',
