@@ -15,21 +15,21 @@ function OFAC_TO_ARC_LINK(linkType) {
 }
 
 module.exports.getOFAC = function() {
+    const nodes = []
+    const links = []
+
     sdn.forEach(entry => {
         const gid = entry.fixed_ref
 
-        let result = {
-            nodes: [{
-                id: gid,
-                label: entry.identity.primary.display_name,
-                type: entry.party_sub_type,
-                attributes: [],
-            }],
-            links: [],
+        const current_node = {
+            id: gid,
+            label: entry.identity.primary.display_name,
+            type: entry.party_sub_type,
+            attributes: [],
         }
 
         entry.identity.aliases.forEach(alias => {
-            result.nodes[0].attributes.push({
+            current_node.attributes.push({
                 key: 'has_alias',
                 value: alias.display_name,
                 sources: [ OFAC_ARCHER_SOURCE ],
@@ -77,8 +77,7 @@ module.exports.getOFAC = function() {
                     })
                 }
 
-                result.nodes[0].attributes.push(attr)
-
+                current_node.attributes.push(attr)
             })
         })
 
@@ -125,8 +124,8 @@ module.exports.getOFAC = function() {
                 })
             })
 
-            result.nodes.push(doc_node)
-            result.links.push({
+            nodes.push(doc_node)
+            links.push({
                 subjectID: gid,
                 objectID: global_doc_id,
                 predicate: 'has_document',
@@ -142,7 +141,7 @@ module.exports.getOFAC = function() {
         })
 
         entry.linked_profiles.forEach(profile => {
-            const details = {
+            const profile_link = {
                 subjectID: gid,
                 objectID: profile.linked_id,
                 predicate: OFAC_TO_ARC_LINK(profile.relation_type),
@@ -154,25 +153,14 @@ module.exports.getOFAC = function() {
                     }
                 ],
             }
-            result.links.push(details)
+            links.push(profile_link)
         })
 
-        results.push(result)
+        nodes.push(current_node)
     })
 
-    return zipResults(results)
-}
-
-function zipResults(results) {
-    const res = {
-        nodes: [],
-        links: [],
+    return {
+        nodes: nodes,
+        links: links,
     }
-
-    results.forEach(r => {
-        res.nodes = res.nodes.concat(r.nodes)
-        res.links = res.links.concat(r.links)
-    })
-
-    return res
 }
