@@ -39,7 +39,7 @@ class Q {
             predicate = `org:${predicate}`
         }
         if (!object.startsWith('?')) {
-            object = `org:${object}`
+            object = `${this.strconv(object)}`
         }
         
         this.wheres.push(`${subject} ${predicate} ${object}`)

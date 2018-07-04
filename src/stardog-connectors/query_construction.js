@@ -120,6 +120,16 @@ module.exports.select_all = async function() {
 
     return response
 }
+
+module.exports.name_to_id = async function(name) {
+    const response = await (new Q())
+        .selectStar()
+        .where('?entity_id', 'has_name', `literal:${name}`)
+        .send()
+
+    return response
+}
+
 /*
 module.exports.find_all_outgoing_relations = async function(subject_id) {
     const response = await (new Q())
