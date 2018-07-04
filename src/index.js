@@ -3,28 +3,35 @@
 const OFAC = require('./ofac/sanctionsexplorer-parser')
 const converter = require('./convert_json')
 
+process.on('unhandledRejection', err => {
+    console.log("Caught unhandledRejection:")
+    console.log(err)
+})
+
 async function load_ofac() {
     let entries = OFAC.getOFAC()
     console.log('entries are done')
     converter.fromJSON(entries)
 }
 
-const TEST_ENTITY_ID = 'fb15d80e-cc09-41fd-b6bc-cc2d1f49641e'
+const TEST_ENTITY_ID = 'aa72db44-4394-4886-9c13-93ff7258a096'
 const TEST_ENTITY_IDS = [
     TEST_ENTITY_ID,
     '56c24a3f-2fab-4a26-a510-143282ec71be',
     '9e5c3593-536e-4e2a-b32f-cdd8acfe171c'
 ]
 async function main() {
-    // const e = await converter.toJSONs(TEST_ENTITY_IDS)
+    // const e = await converter.toJSON(TEST_ENTITY_ID)
     // console.log(JSON.stringify(e, null, 2))
 
     // const r = await converter.fromJSON(t)
     // console.log(r)
 
     await load_ofac()
+
     // const data = await converter.nameToJSON('KONY, Joseph')
     // console.log(JSON.stringify(data, null, 2))
+    
 }
 
 main()

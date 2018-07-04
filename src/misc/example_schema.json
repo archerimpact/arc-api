@@ -40,9 +40,9 @@
     ],
     "links": [
         {
-            "subjectID": "arch1",
-            "objectID": "arch2",
-            "predicate": "has_brother",
+            "sourceID": "arch1",
+            "targetID": "arch2",
+            "relationshipType": "has_brother",
             "data": [
                 {
                     "metakey": "is_true",

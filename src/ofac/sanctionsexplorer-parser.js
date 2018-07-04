@@ -126,9 +126,9 @@ module.exports.getOFAC = function() {
 
             nodes.push(doc_node)
             links.push({
-                subjectID: gid,
-                objectID: global_doc_id,
-                predicate: 'has_document',
+                sourceID: gid,
+                targetID: global_doc_id,
+                relationshipType: 'has_document',
                 data: [
                     {
                         metakey: 'is_true',
@@ -142,9 +142,9 @@ module.exports.getOFAC = function() {
 
         entry.linked_profiles.forEach(profile => {
             const profile_link = {
-                subjectID: gid,
-                objectID: profile.linked_id,
-                predicate: OFAC_TO_ARC_LINK(profile.relation_type),
+                sourceID: gid,
+                targetID: profile.linked_id,
+                relationshipType: OFAC_TO_ARC_LINK(profile.relation_type),
                 data: [
                     {
                         metakey: 'is_true',

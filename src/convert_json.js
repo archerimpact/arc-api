@@ -42,8 +42,8 @@ module.exports.fromJSON = async function(json_object) {
     await links.forEach(link => {
         const claim_id = get_new_claim_id()
 
-        stdog.connect_entities(link['subjectID'],link['objectID'], claim_id)
-        stdog.add_claim_relation(claim_id, link['predicate'])
+        stdog.connect_entities(link['sourceID'],link['targetID'], claim_id)
+        stdog.add_claim_relation(claim_id, link['relationshipType'])
 
         // var data = link["data"]
         // data.forEach(datapoint => {
@@ -67,17 +67,17 @@ function fixNodeID(node) {
 }
 
 function fixLinkID(link) {
-    const sid = link.subjectID
-    const oid = link.objectID
+    const sid = link.sourceID
+    const oid = link.targetID
 
     const mapped_sid = local_to_global_id_map[sid]
     const mapped_oid = local_to_global_id_map[oid]
 
     if (mapped_sid) {
-        link.subjectID = mapped_sid
+        link.sourceID = mapped_sid
     }
     if (mapped_oid) {
-        link.objectID = mapped_oid
+        link.targetID = mapped_oid
     }
 
     return link
@@ -97,13 +97,11 @@ async function id_to_json(entity_id) {
     // grab the entity ID without boilerplate namespacing
     entity_id = entity_id.replace('http://ont/entity', '')
 
-    console.log(entity_id)
     const label_response = await stdog.get_label(entity_id)
     const type_response = await stdog.get_type(entity_id)
     const claims_response = await stdog.get_claims(entity_id)
     const links_response = await stdog.get_linked_entities(entity_id)
 
-    console.log(label_response)
     const label = label_response.body.results.bindings[0].name.value
     const type = type_response.body.results.bindings[0].type.value
     const properties = claims_response.body.results.bindings
@@ -133,9 +131,9 @@ async function id_to_json(entity_id) {
     links.forEach(l => {
         link_list.push({
             claim_id: l.claim_id.value,
-            subjectID: 'http://ont/entity' + entity_id,       /* TODO this should be changed to be flexible with the namespace */
-            objectID: l.entity_id.value,
-            predicate: l.relationship.value
+            sourceID: 'http://ont/entity' + entity_id,       /* TODO this should be changed to be flexible with the namespace */
+            targetID: l.entity_id.value,
+            relationshipType: l.relationship.value
         })
     })
     
@@ -173,7 +171,6 @@ module.exports.nameToJSON = async function(name) {
     const id_response = await stdog.name_to_id(name)
     const id = id_response.body.results.bindings[0].entity_id.value
 
-    console.log(id)
     const json = await module.exports.toJSON(id)
 
     return json
