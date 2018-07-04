@@ -99,7 +99,7 @@ module.exports.get_claims = async function(entity_id) {
     return response
 }
 
-module.exports.get_linked_entities = async function(entity_id) {
+module.exports.get_outgoing_links = async function(entity_id) {
     const response = await (new Q())
         .selectStar()
         .where('entity' + entity_id, 'has_claim', '?claim_id')
@@ -111,6 +111,17 @@ module.exports.get_linked_entities = async function(entity_id) {
     return response
 }
 
+module.exports.get_incoming_links = async function(entity_id) {
+    const response = await (new Q())
+        .selectStar()
+        .where('?entity_id', 'has_claim', '?claim_id')
+        .where('?claim_id', 'makes_claim_about', 'entity' + entity_id)
+        .where('?entity_id', 'has_name', '?name')
+        .where('?claim_id', 'relationship_type', '?relationship')
+        .send()
+    
+    return response
+}
 
 module.exports.select_all = async function() {
     const response = await (new Q())

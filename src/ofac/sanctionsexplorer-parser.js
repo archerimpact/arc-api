@@ -136,9 +136,9 @@ module.exports.getOFAC = function() {
 
             nodes.push(doc_node)
             links.push({
-                sourceID: gid,
-                targetID: global_doc_id,
-                relationshipType: 'has_document',
+                source_id: gid,
+                target_id: global_doc_id,
+                relationship_type: 'has_document',
                 data: [
                     {
                         metakey: 'is_true',
@@ -151,19 +151,21 @@ module.exports.getOFAC = function() {
         })
 
         entry.linked_profiles.forEach(profile => {
-            const profile_link = {
-                sourceID: gid,
-                targetID: profile.linked_id,
-                relationshipType: OFAC_TO_ARC_LINK(profile.relation_type),
-                data: [
-                    {
-                        metakey: 'is_true',
-                        metavalue: true,
-                        sources: [ OFAC_ARCHER_SOURCE ]
-                    }
-                ],
+            if (!profile.is_reverse) {
+                const profile_link = {
+                    source_id: gid,
+                    target_id: profile.linked_id,
+                    relationship_type: OFAC_TO_ARC_LINK(profile.relation_type),
+                    data: [
+                        {
+                            metakey: 'is_true',
+                            metavalue: true,
+                            sources: [ OFAC_ARCHER_SOURCE ]
+                        }
+                    ],
+                }
+                links.push(profile_link)
             }
-            links.push(profile_link)
         })
 
         nodes.push(current_node)

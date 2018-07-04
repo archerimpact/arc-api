@@ -42,7 +42,7 @@ module.exports.fromJSON = async function(json_object) {
     await links.forEach(link => {
         const claim_id = get_new_claim_id()
 
-        stdog.connect_entities(link['sourceID'],link['targetID'], claim_id)
+        stdog.connect_entities(link['source_id'],link['target_id'], claim_id)
         stdog.add_claim_relation(claim_id, link['relationshipType'])
 
         // var data = link["data"]
@@ -67,17 +67,17 @@ function fixNodeID(node) {
 }
 
 function fixLinkID(link) {
-    const sid = link.sourceID
-    const tid = link.targetID
+    const sid = link.source_id
+    const tid = link.target_id
 
     const mapped_sid = local_to_global_id_map[sid]
     const mapped_tid = local_to_global_id_map[tid]
 
     if (mapped_sid) {
-        link.sourceID = mapped_sid
+        link.source_id = mapped_sid
     }
     if (mapped_tid) {
-        link.targetID = mapped_tid
+        link.target_id = mapped_tid
     }
 
     return link
@@ -100,12 +100,14 @@ async function id_to_json(entity_id) {
     const label_response = await stdog.get_label(entity_id)
     const type_response = await stdog.get_type(entity_id)
     const claims_response = await stdog.get_claims(entity_id)
-    const links_response = await stdog.get_linked_entities(entity_id)
+    const incoming_response = await stdog.get_incoming_links(entity_id)
+    const outgoing_response = await stdog.get_outgoing_links(entity_id)
 
     const label = label_response.body.results.bindings[0].name.value
     const type = type_response.body.results.bindings[0].type.value
     const properties = claims_response.body.results.bindings
-    const links = links_response.body.results.bindings
+    const incoming = incoming_response.body.results.bindings
+    const outgoing = outgoing_response.body.results.bindings
 
     const json = {
         nodes: [{
@@ -128,12 +130,21 @@ async function id_to_json(entity_id) {
         })
     })
 
-    links.forEach(l => {
+    incoming.forEach(in_link => {
         link_list.push({
-            claim_id: l.claim_id.value,
-            sourceID: 'http://ont/entity' + entity_id,       /* TODO this should be changed to be flexible with the namespace */
-            targetID: l.entity_id.value,
-            relationshipType: l.relationship.value
+            claim_id: in_link.claim_id.value,
+            source_id: 'http://ont/entity' + entity_id,       /* TODO this should be changed to be flexible with the namespace */
+            target_id: in_link.entity_id.value,
+            relationshipType: in_link.relationship.value
+        })
+    })
+
+    outgoing.forEach(out_link => {
+        link_list.push({
+            claim_id: out_link.claim_id.value,
+            source_id: out_link.entity_id.value,
+            target_id: 'http://ont/entity' + entity_id,     /* TODO this should be changed to be flexible with the namespace */
+            relationshipType: out_link.relationship.value
         })
     })
     
