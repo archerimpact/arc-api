@@ -9,13 +9,13 @@ const conn = new Connection({
 })
 
 // connect the RDFQuery object to the instance of the db
-Q.prototype.send = async function() {
+Q.prototype.send = async function () {
     const queryString = this.generateQuery()
     if (DEBUG) {
         console.log(queryString)
     }
     const response = await query.execute(conn, 'myDB', queryString)
-    
+
     if (response.ok !== true) {
         // console.log(queryString)
         console.log(response)
@@ -25,38 +25,37 @@ Q.prototype.send = async function() {
 }
 
 let CURRENT = new Q()
-module.exports.current = CURRENT
 
-module.exports.addPropertyClaim = async function(claimID, entityID) {
+async function addPropertyClaim(claimID, entityID) {
     CURRENT.insertTriple(entityID, 'has_claimed_property', claimID)
 }
 
-module.exports.addClaimRelation = async function(claimID, relationship) {
+async function addClaimRelation(claimID, relationship) {
     CURRENT.insertTriple(claimID, 'relationship_type', relationship)
 }
 
-module.exports.addClaimKeyAndValue = async function(claimID, key, value) {
+async function addClaimKeyAndValue(claimID, key, value) {
     CURRENT
         .insertTriple(claimID, 'has_claim_type', `literal:${key}`)
         .insertTriple(claimID, 'claim_value_of', `literal:${value}`)
 }
 
-module.exports.add_claim_source = async function(claimID, source) {
+async function add_claim_source(claimID, source) {
     CURRENT.insertTriple(claimID, 'references_document', `literal:${source}`)
 }
 
-module.exports.createEntity = async function(id, name, entity_type) {
+async function createEntity(id, name, entity_type) {
     CURRENT.insertTriple(id, 'has_name', `literal:${name}`)
     CURRENT.insertTriple(id, 'is', entity_type)
 }
 
-module.exports.connectEntities = async function(subject_id, object_id, claimID) {
+async function connectEntities(subject_id, object_id, claimID) {
     CURRENT
         .insertTriple(subject_id, 'has_claim', claimID)
-        .insertTriple(claimID, 'makes_claim_about', object=object_id)
+        .insertTriple(claimID, 'makes_claim_about', object = object_id)
 }
 
-module.exports.execute = async function() {
+async function execute() {
     const response = await CURRENT.send()
     return response
 }
@@ -66,7 +65,7 @@ module.exports.execute = async function() {
  * All of these functions send their query upon function call.
  */
 
-module.exports.getLabel = async function(entityID) {
+async function getLabel(entityID) {
     const response = await (new Q())
         .selectStar()
         .where('entity' + entityID, 'has_name', '?name')
@@ -75,7 +74,7 @@ module.exports.getLabel = async function(entityID) {
     return response
 }
 
-module.exports.getType = async function(entityID) {
+async function getType(entityID) {
     const response = await (new Q())
         .selectStar()
         .where('entity' + entityID, 'is', '?type')
@@ -84,7 +83,7 @@ module.exports.getType = async function(entityID) {
     return response
 }
 
-module.exports.getClaims = async function(entityID) {
+async function getClaims(entityID) {
     const response = await (new Q())
         .selectStar()
         .where('entity' + entityID, 'has_claimed_property', '?claimID')
@@ -95,7 +94,7 @@ module.exports.getClaims = async function(entityID) {
     return response
 }
 
-module.exports.getOutgoingLinks = async function(entityID) {
+async function getOutgoingLinks(entityID) {
     const response = await (new Q())
         .selectStar()
         .where('entity' + entityID, 'has_claim', '?claimID')
@@ -103,11 +102,11 @@ module.exports.getOutgoingLinks = async function(entityID) {
         .where('?entityID', 'has_name', '?name')
         .where('?claimID', 'relationship_type', '?relationship')
         .send()
-    
+
     return response
 }
 
-module.exports.getIncomingLinks = async function(entityID) {
+async function getIncomingLinks(entityID) {
     const response = await (new Q())
         .selectStar()
         .where('?entityID', 'has_claim', '?claimID')
@@ -115,11 +114,11 @@ module.exports.getIncomingLinks = async function(entityID) {
         .where('?entityID', 'has_name', '?name')
         .where('?claimID', 'relationship_type', '?relationship')
         .send()
-    
+
     return response
 }
 
-module.exports.selectAll = async function() {
+async function selectAll() {
     const response = await (new Q())
         .selectStar()
         .where('?s', '?p', '?o')
@@ -128,11 +127,28 @@ module.exports.selectAll = async function() {
     return response
 }
 
-module.exports.findIDByName = async function(name) {
+async function findIDByName(name) {
     const response = await (new Q())
         .selectStar()
         .where('?entityID', 'has_name', `literal:${name}`)
         .send()
 
     return response
+}
+
+
+module.exports = {
+    addPropertyClaim: addPropertyClaim,
+    addClaimRelation: addClaimRelation,
+    addClaimKeyAndValue: addClaimKeyAndValue,
+    createEntity: createEntity,
+    connectEntities: connectEntities,
+    execute: execute,
+    getLabel: getLabel,
+    getType: getType,
+    getClaims: getClaims,
+    getIncomingLinks: getIncomingLinks,
+    getOutgoingLinks: getOutgoingLinks,
+    selectAll: selectAll,
+    findIDByName: findIDByName,
 }

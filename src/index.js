@@ -24,8 +24,47 @@ async function main() {
  * Temporary method for mirroring the current ArchAPI response format.
  */
 function zipForFrontend(data) {
-    data = data.message
-    data.type = data.type.replace('http://ont/', '')
+
+    function mapKey(key) {
+        const mapping = {
+            has_alias: 'Aliases',
+        }
+
+        return mapping[key] || key
+    }
+
+    console.log(data)
+    // data = data.message
+    data.nodes = data.nodes.map(node => {
+        const newNode = {
+            id: node.id,
+            label: node.label,
+            type: node.type,
+            dataset: 'OFAC SDN List',
+            totalLinks: node.util[0].totalLinks,
+        }
+
+        node.attributes.forEach(attr => {
+            const mappedKey = mapKey(attr.key)
+            if (newNode[mappedKey]) {
+                newNode[mappedKey].push(attr.value)
+            }
+            else {
+                newNode[mappedKey] = [attr.value]
+            }
+        })
+
+        return newNode
+    })
+
+    data.links = data.links.map(link => {
+        return {
+            id: link.claimID,
+            type: link.relationshipType.replace('http://ont/', ''),
+            source: link.sourceID,
+            target: link.targetID,
+        }
+    })
 
     return data
 }
@@ -44,7 +83,7 @@ app.listen(8080, '127.0.0.1', () => {
 })
 
 app.get('/', (req, res) => {
-    return res.status(200).json({ success: true, message: 'Server is running!' })       // this is how you send a response to the client
+    return res.status(200).json({ success: true, message: 'Server is running!' })
 })
 
 app.get('/data/entity', async function(req, res) {
@@ -60,5 +99,6 @@ app.get('/data/entity', async function(req, res) {
     }
 
     data = zipForFrontend(data)
-    return res.status(200).json({ success: true, message: data })
+    // return res.status(200).json({ success: true, message: data })
+    return res.status(200).json(data)
 })

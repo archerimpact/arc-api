@@ -92,6 +92,14 @@ function getNewEntityID() {
     return entityID
 }
 
+async function getLinkCount(entityID) {
+    const incoming = await getIncomingLinks(entityID)
+    const outgoing = await getOutgoingLinks(entityID)
+
+    console.log(incoming)
+    console.log(outgoing)
+}
+
 async function getEntityPropertiesByID(entityID) {
     // grab the entity ID without boilerplate namespacing
     entityID = entityID.replace('http://ont/entity', '')
@@ -118,6 +126,10 @@ async function getEntityPropertiesByID(entityID) {
             key: p.claimType.value,
             value: p.claimValue.value,
         })
+    })
+
+    node.util.push({
+        totalLinks: await getLinkCount(entityID)
     })
 
     return node
@@ -167,10 +179,6 @@ async function getEntityByID(entityID) {
             relationshipType: outLink.relationship.value
         })
     })
-
-    // data.util.push({
-    //     totalLinks: data.links.length,
-    // })
     
     await Promise.all(waitingForIncoming)
     await Promise.all(waitingForOutgoing)
@@ -211,6 +219,13 @@ async function getEntityByName(name) {
     const data = await getEntityByID(id)
 
     return data
+}
+
+async function getLinkCount(entityID) {
+    const incoming = await stardog.getIncomingLinks(entityID)
+    const outgoing = await stardog.getOutgoingLinks(entityID)
+
+    return incoming.body.results.bindings.length + outgoing.body.results.bindings.length
 }
 
 module.exports = {
