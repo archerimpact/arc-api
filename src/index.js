@@ -8,38 +8,21 @@ process.on('unhandledRejection', err => {
     console.log(err)
 })
 
-async function load_ofac() {
-    let entries = OFAC.getOFAC()
-    console.log('entries are done')
-    converter.fromJSON(entries)
+async function loadOFAC() {
+    const entries = OFAC.getOFAC()
+    converter.loadEntitiesFromData(entries)
 }
 
-const TEST_ENTITY_ID = 'aa72db44-4394-4886-9c13-93ff7258a096'
-const TEST_ENTITY_IDS = [
-    TEST_ENTITY_ID,
-    '56c24a3f-2fab-4a26-a510-143282ec71be',
-    '9e5c3593-536e-4e2a-b32f-cdd8acfe171c'
-]
 async function main() {
-    // const e = await converter.toJSON(TEST_ENTITY_ID)
-    // console.log(JSON.stringify(e, null, 2))
-
-    // const r = await converter.fromJSON(t)
-    // console.log(r)
-
-    // await load_ofac()
-
-    const data = await converter.nameToJSON('KONY, Joseph')
-    console.log(JSON.stringify(data, null, 2))
-    
+    // const data = await converter.getEntityByName('KONY, Joseph')
+    // console.log(JSON.stringify(data, null, 2))
 }
 
-main()
+// main()
 
 
 
 // Express webserver.  Should be reorganized later.
-/*
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
@@ -55,15 +38,17 @@ app.get('/', (req, res) => {
     return res.status(200).json({ success: true, message: 'Server is running!' })       // this is how you send a response to the client
 })
 
-// e.g. curl -XGET "localhost:8080/data/entity?id=5"
 app.get('/data/entity', async function(req, res) {
-    const id = req.query.id     // the id field of the GET request (i.e. the param in the URL)
-    return res.status(200).json(id)
-})
+    const id = req.query.id
+    const name = req.query.name
+    
+    let data
+    if (id) {
+        data = await converter.getEntityByID(id)
+    }
+    else if (name) {
+        data = await converter.getEntityByName(name)
+    }
 
-// e.g. curl -XPOST "localhost:8080/data/userSubmit" -H "Content-Type: application/json" -d '{"someKey":"abc","password":"abc"}'
-app.post('/data/userSubmit', async function(req, res) {
-    const data = req.body.someKey      // the `someKey` field of the user's POST request
-    return res.status(200).json(data)
+    return res.status(200).json({ success: true, message: data })
 })
-*/

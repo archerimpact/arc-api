@@ -1,49 +1,48 @@
 'use strict'
 
-const stdog = require('./stardog-connectors/query_construction')
+const stardog = require('./stardog-connectors/query_construction')
 const uuid = require('node-uuid')
 
-const local_to_global_id_map = {}
+const localToGlobalIDMap = {}
 
-module.exports.fromJSON = async function(json_object) {
-    let nodes = json_object['nodes']
-    let links = json_object['links']
+async function loadEntitiesFromData(data) {
+    let nodes = data['nodes']
+    let links = data['links']
 
     nodes = nodes.map(fixNodeID)
     links = links.map(fixLinkID)
-    console.log('Nodes and links fixed!')
 
     await nodes.forEach(entity => {
-        const entity_id = entity['id']
-        stdog.create_entity(entity_id, entity['label'], entity['type'])
+        const entityID = entity['id']
+        stardog.createEntity(entityID, entity['label'], entity['type'])
 
         const attributes = entity['attributes']
         attributes.forEach(attr => {
-            const claim_id = get_new_claim_id()
-            stdog.add_property_claim(claim_id, entity_id)
-            stdog.add_claim_key_and_value(claim_id, attr['key'], attr['value'])
+            const claimID = getNewClaimID()
+            stardog.addPropertyClaim(claimID, entityID)
+            stardog.addClaimKeyAndValue(claimID, attr['key'], attr['value'])
 
             // var attr_sources = attr["sources"]
             // attr_sources.forEach(src_tuple => {
-            //     stdog.add_claim_source(claim_id, src_tuple[0])
+            //     stdog.add_claim_source(claimID, src_tuple[0])
             //     //TODO: add claim user
             // });
 
             // var attr_metadata = attr["metadata"]
             // attr_metadata.forEach(metadata => {
-            //     //TODO: figure out which claim_id to use, then add metadata
+            //     //TODO: figure out which claimID to use, then add metadata
                 
             // });
         })
     })
 
-    await stdog.execute()
+    await stardog.execute()
 
     await links.forEach(link => {
-        const claim_id = get_new_claim_id()
+        const claimID = getNewClaimID()
 
-        stdog.connect_entities(link['source_id'],link['target_id'], claim_id)
-        stdog.add_claim_relation(claim_id, link['relationshipType'])
+        stardog.connectEntities(link['sourceID'],link['targetID'], claimID)
+        stardog.addClaimRelation(claimID, link['relationshipType'])
 
         // var data = link["data"]
         // data.forEach(datapoint => {
@@ -51,67 +50,67 @@ module.exports.fromJSON = async function(json_object) {
         // });
     })
 
-    await stdog.execute()
+    await stardog.execute()
     
 }
 
 function fixNodeID(node) {
-    const given_id = node.id
-    if (!local_to_global_id_map[given_id]) {
-        const new_id = get_new_entity_id()
-        local_to_global_id_map[given_id] = new_id
-        node.id = new_id
+    const givenID = node.id
+    if (!localToGlobalIDMap[givenID]) {
+        const newID = getNewEntityID()
+        localToGlobalIDMap[givenID] = newID
+        node.id = newID
     }
 
     return node
 }
 
 function fixLinkID(link) {
-    const sid = link.source_id
-    const tid = link.target_id
+    const sid = link.sourceID
+    const tid = link.targetID
 
-    const mapped_sid = local_to_global_id_map[sid]
-    const mapped_tid = local_to_global_id_map[tid]
+    const mappedSourceID = localToGlobalIDMap[sid]
+    const mappedTargetID = localToGlobalIDMap[tid]
 
-    if (mapped_sid) {
-        link.source_id = mapped_sid
+    if (mappedSourceID) {
+        link.sourceID = mappedSourceID
     }
-    if (mapped_tid) {
-        link.target_id = mapped_tid
+    if (mappedTargetID) {
+        link.targetID = mappedTargetID
     }
 
     return link
 }
 
-function get_new_claim_id() {
-    const claim_id = 'claim' + uuid.v4()
-    return claim_id
+function getNewClaimID() {
+    const claimID = 'claim' + uuid.v4()
+    return claimID
 }
 
-function get_new_entity_id() {
-    const entity_id = 'entity' + uuid.v4()
-    return entity_id
+function getNewEntityID() {
+    const entityID = 'entity' + uuid.v4()
+    return entityID
 }
 
-async function id_to_json(entity_id) {
+async function getEntityByID(entityID) {
     // grab the entity ID without boilerplate namespacing
-    entity_id = entity_id.replace('http://ont/entity', '')
+    entityID = entityID.replace('http://ont/entity', '')
 
-    const label_response = await stdog.get_label(entity_id)
-    const type_response = await stdog.get_type(entity_id)
-    const claims_response = await stdog.get_claims(entity_id)
-    const incoming_response = await stdog.get_incoming_links(entity_id)
-    const outgoing_response = await stdog.get_outgoing_links(entity_id)
+    const labelResponse = await stardog.getLabel(entityID)
+    const typeResponse = await stardog.getType(entityID)
+    const claimsResponse = await stardog.getClaims(entityID)
+    const incomingResponse = await stardog.getIncomingLinks(entityID)
+    const outgoingResponse = await stardog.getOutgoingLinks(entityID)
 
-    const label = label_response.body.results.bindings[0].name.value
-    const type = type_response.body.results.bindings[0].type.value
-    const properties = claims_response.body.results.bindings
-    const incoming = incoming_response.body.results.bindings
-    const outgoing = outgoing_response.body.results.bindings
+    const label = labelResponse.body.results.bindings[0].name.value
+    const type = typeResponse.body.results.bindings[0].type.value
+    const properties = claimsResponse.body.results.bindings
+    const incoming = incomingResponse.body.results.bindings
+    const outgoing = outgoingResponse.body.results.bindings
 
-    const json = {
+    const data = {
         nodes: [{
-            id: entity_id,
+            id: entityID,
             label: label,
             type: type,
             attributes: [],
@@ -119,43 +118,43 @@ async function id_to_json(entity_id) {
         links: [],
     }
 
-    const prop_list = json.nodes[0].attributes
-    const link_list = json.links
+    const propertyList = data.nodes[0].attributes
+    const linksList = data.links
 
     properties.forEach(p => {
-        prop_list.push({
-            claim_id: p.claim_id.value,
-            key: p.claim_type.value,
-            value: p.claim_value.value,
+        propertyList.push({
+            claimID: p.claimID.value,
+            key: p.claimType.value,
+            value: p.claimValue.value,
         })
     })
 
-    incoming.forEach(in_link => {
-        link_list.push({
-            claim_id: in_link.claim_id.value,
-            source_id: 'http://ont/entity' + entity_id,       /* TODO this should be changed to be flexible with the namespace */
-            target_id: in_link.entity_id.value,
-            relationshipType: in_link.relationship.value
+    incoming.forEach(inLink => {
+        linksList.push({
+            claimID: inLink.claimID.value,
+            sourceID: 'http://ont/entity' + entityID,       /* TODO this should be changed to be flexible with the namespace */
+            targetID: inLink.entityID.value,
+            relationshipType: inLink.relationship.value
         })
     })
 
-    outgoing.forEach(out_link => {
-        link_list.push({
-            claim_id: out_link.claim_id.value,
-            source_id: out_link.entity_id.value,
-            target_id: 'http://ont/entity' + entity_id,     /* TODO this should be changed to be flexible with the namespace */
-            relationshipType: out_link.relationship.value
+    outgoing.forEach(outLink => {
+        linksList.push({
+            claimID: outLink.claimID.value,
+            sourceID: outLink.entityID.value,
+            targetID: 'http://ont/entity' + entityID,     /* TODO this should be changed to be flexible with the namespace */
+            relationshipType: outLink.relationship.value
         })
     })
     
-    return json
+    return data
 }
 
-async function list_to_json(entity_ids) {
+async function getEntitiesByIDs(entityIDs) {
     const jsons = []
 
-    const waiting = entity_ids.map(async (id) => {
-        const json = await id_to_json(id)
+    const waiting = entityIDs.map(async (id) => {
+        const json = await getEntityByID(id)
         jsons.push(json)
     })
 
@@ -178,14 +177,17 @@ function zipResults(results) {
     return res
 }
 
-module.exports.nameToJSON = async function(name) {
-    const id_response = await stdog.name_to_id(name)
-    const id = id_response.body.results.bindings[0].entity_id.value
+async function getEntityByName(name) {
+    const response = await stardog.findIDByName(name)
+    const id = response.body.results.bindings[0].entityID.value
+    const data = await getEntityByID(id)
 
-    const json = await module.exports.toJSON(id)
-
-    return json
+    return data
 }
 
-module.exports.toJSON = id_to_json
-module.exports.toJSONs = list_to_json
+module.exports = {
+    loadEntitiesFromData: loadEntitiesFromData,
+    getEntityByID: getEntityByID,
+    getEntitiesByIDs: getEntitiesByIDs,
+    getEntityByName: getEntityByName,
+}

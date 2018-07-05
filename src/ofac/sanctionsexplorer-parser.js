@@ -6,7 +6,7 @@ const path = require('path')
 const sdn = JSON.parse(fs.readFileSync(path.join(__dirname, 'sdn.json'), 'utf8'))
 const results = []
 
-let global_doc_id = 100000
+let globalDocID = 100000
 
 const OFAC_ARCHER_SOURCE = ['OFAC SDN', 'Archer']
 
@@ -21,25 +21,25 @@ module.exports.getOFAC = function() {
     sdn.forEach(entry => {
         const gid = entry.fixed_ref
 
-        const current_node = {
+        const currentNode = {
             id: gid,
             label: entry.identity.primary.display_name,
             type: entry.party_sub_type,
             attributes: [],
         }
 
-        current_node.attributes.push({
+        currentNode.attributes.push({
             key: 'OFAC List',
             value: entry.sanctions_entries[0].list
         })
 
-        current_node.attributes.push({
+        currentNode.attributes.push({
             key: 'OFAC Program',
             value: entry.sanctions_entries[0].program
         })
 
         entry.identity.aliases.forEach(alias => {
-            current_node.attributes.push({
+            currentNode.attributes.push({
                 key: 'has_alias',
                 value: alias.display_name,
                 sources: [ OFAC_ARCHER_SOURCE ],
@@ -87,13 +87,13 @@ module.exports.getOFAC = function() {
                     })
                 }
 
-                current_node.attributes.push(attr)
+                currentNode.attributes.push(attr)
             })
         })
 
         entry.documents.forEach(doc => {
-            const doc_node = {
-                id: ++global_doc_id,
+            const docNode = {
+                id: ++globalDocID,
                 label: doc.id_number,
                 type: 'document',
                 attributes: [
@@ -119,7 +119,7 @@ module.exports.getOFAC = function() {
             }
 
             if (doc.issued_by && doc.issued_by !== 'None') {
-                doc_node.attributes.push({
+                docNode.attributes.push({
                     key: 'DOCUMENT_ISSUED_BY',
                     value: doc.issued_by,
                     sources: [ OFAC_ARCHER_SOURCE ],
@@ -128,17 +128,17 @@ module.exports.getOFAC = function() {
             }
 
             Object.keys(doc.relevant_dates).forEach(date => {
-                doc_node.attributes.push({
+                docNode.attributes.push({
                     key: date,
                     value: doc.relevant_dates[date]
                 })
             })
 
-            nodes.push(doc_node)
+            nodes.push(docNode)
             links.push({
-                source_id: gid,
-                target_id: global_doc_id,
-                relationship_type: 'has_document',
+                sourceID: gid,
+                targetID: globalDocID,
+                relationshipType: 'has_document',
                 data: [
                     {
                         metakey: 'is_true',
@@ -152,10 +152,10 @@ module.exports.getOFAC = function() {
 
         entry.linked_profiles.forEach(profile => {
             if (!profile.is_reverse) {
-                const profile_link = {
-                    source_id: gid,
-                    target_id: profile.linked_id,
-                    relationship_type: OFAC_TO_ARC_LINK(profile.relation_type),
+                const profileLink = {
+                    sourceID: gid,
+                    targetID: profile.linked_id,
+                    relationshipType: OFAC_TO_ARC_LINK(profile.relation_type),
                     data: [
                         {
                             metakey: 'is_true',
@@ -164,11 +164,11 @@ module.exports.getOFAC = function() {
                         }
                     ],
                 }
-                links.push(profile_link)
+                links.push(profileLink)
             }
         })
 
-        nodes.push(current_node)
+        nodes.push(currentNode)
     })
 
     return {

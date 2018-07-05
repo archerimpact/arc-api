@@ -9,7 +9,7 @@ class Q {
         this.prefixes.push(`PREFIX ${key} <${namespace}>`)
         return this
     }
-    select_triple(subject, predicate, object) {
+    selectTriple(subject, predicate, object) {
         if (!subject.startsWith('?')) {
             subject = `${this.strconv(subject)}`
         }
@@ -17,7 +17,7 @@ class Q {
             predicate = `org:${predicate}`
         }
         if (!object.startsWith('?')) {
-            object = `org:${object}`
+            object = `${this.strconv(subject)}`
         }
 
         this.selects.push(`${subject} ${predicate} ${object}`)
@@ -27,7 +27,7 @@ class Q {
         this.selects.push('*')
         return this
     }
-    insert_triple(subject, predicate, object) {
+    insertTriple(subject, predicate, object) {
         this.inserts.push(`${this.strconv(subject)} org:${predicate} ${this.strconv(object)}`)
         return this
     }
@@ -45,25 +45,25 @@ class Q {
         this.wheres.push(`${subject} ${predicate} ${object}`)
         return this
     }
-    generate_query() {
-        const prefix_stmts = this.prefixes.join(' ')
+    generateQuery() {
+        const prefixStmts = this.prefixes.join(' ')
 
-        let select_stmts = ''
+        let selectStmts = ''
         if (this.selects.length > 0) {
-            select_stmts = 'SELECT ' + this.selects.join(' . ') + ''
+            selectStmts = 'SELECT ' + this.selects.join(' . ') + ''
         }
 
-        let insert_stmts = ''
+        let insertStmts = ''
         if (this.inserts.length > 0) {
-            insert_stmts = 'INSERT DATA { ' + this.inserts.join(' . ') + ' }'
+            insertStmts = 'INSERT DATA { ' + this.inserts.join(' . ') + ' }'
         }
 
-        let where_stmts  = ''
+        let whereStmts = ''
         if (this.wheres.length > 0) {
-            where_stmts = 'WHERE { ' + this.wheres.join(' . ') + ' }'
+            whereStmts = 'WHERE { ' + this.wheres.join(' . ') + ' }'
         }
 
-        return prefix_stmts + ' ' + select_stmts + ' ' + insert_stmts + ' ' + where_stmts
+        return prefixStmts + ' ' + selectStmts + ' ' + insertStmts + ' ' + whereStmts
     }
     strconv(str, prefix) {
         if (typeof str !== 'string') {
