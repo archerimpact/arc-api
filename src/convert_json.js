@@ -92,62 +92,90 @@ function getNewEntityID() {
     return entityID
 }
 
-async function getEntityByID(entityID) {
+async function getEntityPropertiesByID(entityID) {
     // grab the entity ID without boilerplate namespacing
     entityID = entityID.replace('http://ont/entity', '')
 
     const labelResponse = await stardog.getLabel(entityID)
     const typeResponse = await stardog.getType(entityID)
     const claimsResponse = await stardog.getClaims(entityID)
-    const incomingResponse = await stardog.getIncomingLinks(entityID)
-    const outgoingResponse = await stardog.getOutgoingLinks(entityID)
 
     const label = labelResponse.body.results.bindings[0].name.value
     const type = typeResponse.body.results.bindings[0].type.value
     const properties = claimsResponse.body.results.bindings
-    const incoming = incomingResponse.body.results.bindings
-    const outgoing = outgoingResponse.body.results.bindings
 
-    const data = {
-        nodes: [{
-            id: entityID,
-            label: label,
-            type: type,
-            attributes: [],
-        }],
-        links: [],
+    const node = {
+        id: entityID,
+        label: label,
+        type: type,
+        attributes: [],
+        util: [],
     }
 
-    const propertyList = data.nodes[0].attributes
-    const linksList = data.links
-
     properties.forEach(p => {
-        propertyList.push({
+        node.attributes.push({
             claimID: p.claimID.value,
             key: p.claimType.value,
             value: p.claimValue.value,
         })
     })
 
-    incoming.forEach(inLink => {
-        linksList.push({
+    return node
+}
+
+
+async function getEntityByID(entityID) {
+    // grab the entity ID without boilerplate namespacing
+    entityID = entityID.replace('http://ont/entity', '')
+
+    const json = {
+        nodes: [],
+        links: []
+    }
+    const data = await getEntityPropertiesByID(entityID)
+    json.nodes.push(data)
+    
+    const incomingResponse = await stardog.getIncomingLinks(entityID)
+    const outgoingResponse = await stardog.getOutgoingLinks(entityID)
+
+    const incoming = incomingResponse.body.results.bindings
+    const outgoing = outgoingResponse.body.results.bindings
+
+    const waitingForIncoming = incoming.map(async (inLink) => {
+        const linked = inLink.entityID.value
+        console.log('incoming linked: ' + linked)
+        const linkedData = await getEntityPropertiesByID(linked)
+
+        json.nodes.push(linkedData)
+        json.links.push({
             claimID: inLink.claimID.value,
-            sourceID: 'http://ont/entity' + entityID,       /* TODO this should be changed to be flexible with the namespace */
-            targetID: inLink.entityID.value,
+            sourceID: 'http://ont/entity' + entityID,
+            targetID: linked,
             relationshipType: inLink.relationship.value
         })
     })
 
-    outgoing.forEach(outLink => {
-        linksList.push({
+    const waitingForOutgoing = outgoing.map(async (outLink) => {
+        const linked = outLink.entityID.value
+        const linkedData = await getEntityPropertiesByID(linked)
+
+        json.nodes.push(linkedData)
+        json.links.push({
             claimID: outLink.claimID.value,
-            sourceID: outLink.entityID.value,
-            targetID: 'http://ont/entity' + entityID,     /* TODO this should be changed to be flexible with the namespace */
+            sourceID: linked,
+            targetID: 'http://ont/entity' + entityID,
             relationshipType: outLink.relationship.value
         })
     })
+
+    // data.util.push({
+    //     totalLinks: data.links.length,
+    // })
     
-    return data
+    await Promise.all(waitingForIncoming)
+    await Promise.all(waitingForOutgoing)
+
+    return json
 }
 
 async function getEntitiesByIDs(entityIDs) {

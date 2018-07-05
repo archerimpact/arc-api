@@ -20,6 +20,15 @@ async function main() {
 
 // main()
 
+/**
+ * Temporary method for mirroring the current ArchAPI response format.
+ */
+function zipForFrontend(data) {
+    data = data.message
+    data.type = data.type.replace('http://ont/', '')
+
+    return data
+}
 
 
 // Express webserver.  Should be reorganized later.
@@ -50,5 +59,6 @@ app.get('/data/entity', async function(req, res) {
         data = await converter.getEntityByName(name)
     }
 
+    data = zipForFrontend(data)
     return res.status(200).json({ success: true, message: data })
 })
