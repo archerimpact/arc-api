@@ -9,6 +9,7 @@ process.on('unhandledRejection', err => {
 })
 
 async function loadOFAC() {
+    console.log('Loading OFAC...')
     const entries = OFAC.getOFAC()
     converter.loadEntitiesFromData(entries)
 }
@@ -18,7 +19,7 @@ async function main() {
     // console.log(JSON.stringify(data, null, 2))
 }
 
-// main()
+loadOFAC()
 
 /**
  * Temporary method for mirroring the current ArchAPI response format.
@@ -33,12 +34,10 @@ function zipForFrontend(data) {
         return mapping[key] || key
     }
 
-    console.log(data)
-    // data = data.message
     data.nodes = data.nodes.map(node => {
         const newNode = {
             id: node.id,
-            label: node.label,
+            name: node.label,
             type: node.type,
             dataset: 'OFAC SDN List',
             totalLinks: node.util[0].totalLinks,

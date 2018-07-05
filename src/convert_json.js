@@ -12,43 +12,26 @@ async function loadEntitiesFromData(data) {
     nodes = nodes.map(fixNodeID)
     links = links.map(fixLinkID)
 
-    await nodes.forEach(entity => {
+    await Promise.all(nodes.map(async (entity) => {
         const entityID = entity['id']
-        stardog.createEntity(entityID, entity['label'], entity['type'])
+        await stardog.createEntity(entityID, entity['label'], entity['type'])
 
         const attributes = entity['attributes']
-        attributes.forEach(attr => {
+        await Promise.all(attributes.map(async attr => {
             const claimID = getNewClaimID()
-            stardog.addPropertyClaim(claimID, entityID)
-            stardog.addClaimKeyAndValue(claimID, attr['key'], attr['value'])
-
-            // var attr_sources = attr["sources"]
-            // attr_sources.forEach(src_tuple => {
-            //     stdog.add_claim_source(claimID, src_tuple[0])
-            //     //TODO: add claim user
-            // });
-
-            // var attr_metadata = attr["metadata"]
-            // attr_metadata.forEach(metadata => {
-            //     //TODO: figure out which claimID to use, then add metadata
-                
-            // });
-        })
-    })
+            await stardog.addPropertyClaim(claimID, entityID)
+            await stardog.addClaimKeyAndValue(claimID, attr['key'], attr['value'])
+        }))
+    }))
 
     await stardog.execute()
 
-    await links.forEach(link => {
+    await Promise.all(links.map(async link => {
         const claimID = getNewClaimID()
 
-        stardog.connectEntities(link['sourceID'],link['targetID'], claimID)
-        stardog.addClaimRelation(claimID, link['relationshipType'])
-
-        // var data = link["data"]
-        // data.forEach(datapoint => {
-        //     //TODO: handle metadata addition
-        // });
-    })
+        await stardog.connectEntities(link['sourceID'],link['targetID'], claimID)
+        await stardog.addClaimRelation(claimID, link['relationshipType'])
+    }))
 
     await stardog.execute()
     
@@ -153,7 +136,7 @@ async function getEntityByID(entityID) {
     const incoming = incomingResponse.body.results.bindings
     const outgoing = outgoingResponse.body.results.bindings
 
-    const waitingForIncoming = incoming.map(async (inLink) => {
+    await Promise.all(incoming.map(async inLink => {
         const linked = inLink.entityID.value
         console.log('incoming linked: ' + linked)
         const linkedData = await getEntityPropertiesByID(linked)
@@ -165,9 +148,9 @@ async function getEntityByID(entityID) {
             targetID: linked,
             relationshipType: inLink.relationship.value
         })
-    })
+    }))
 
-    const waitingForOutgoing = outgoing.map(async (outLink) => {
+    await Promise.all(outgoing.map(async (outLink) => {
         const linked = outLink.entityID.value
         const linkedData = await getEntityPropertiesByID(linked)
 
@@ -178,10 +161,7 @@ async function getEntityByID(entityID) {
             targetID: 'http://ont/entity' + entityID,
             relationshipType: outLink.relationship.value
         })
-    })
-    
-    await Promise.all(waitingForIncoming)
-    await Promise.all(waitingForOutgoing)
+    }))
 
     return json
 }
@@ -189,12 +169,10 @@ async function getEntityByID(entityID) {
 async function getEntitiesByIDs(entityIDs) {
     const jsons = []
 
-    const waiting = entityIDs.map(async (id) => {
+    await Promise.all(entityIDs.map(async id => {
         const json = await getEntityByID(id)
         jsons.push(json)
-    })
-
-    await Promise.all(waiting)
+    }))
 
     return zipResults(jsons)
 }

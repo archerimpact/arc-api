@@ -127,7 +127,7 @@ async function selectAll() {
     return response
 }
 
-async function findIDByName(name) {
+async function getIDFromName(name) {
     const response = await (new Q())
         .selectStar()
         .where('?entityID', 'has_name', `literal:${name}`)
@@ -150,5 +150,5 @@ module.exports = {
     getIncomingLinks: getIncomingLinks,
     getOutgoingLinks: getOutgoingLinks,
     selectAll: selectAll,
-    findIDByName: findIDByName,
+    findIDByName: getIDFromName,
 }
