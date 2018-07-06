@@ -75,14 +75,6 @@ function getNewEntityID() {
     return entityID
 }
 
-async function getLinkCount(entityID) {
-    const incoming = await getIncomingLinks(entityID)
-    const outgoing = await getOutgoingLinks(entityID)
-
-    console.log(incoming)
-    console.log(outgoing)
-}
-
 async function getEntityPropertiesByID(entityID) {
     // grab the entity ID without boilerplate namespacing
     entityID = entityID.replace('http://ont/entity', '')

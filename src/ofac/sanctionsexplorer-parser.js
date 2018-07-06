@@ -4,7 +4,6 @@ const fs = require('fs')
 const path = require('path')
 
 const sdn = JSON.parse(fs.readFileSync(path.join(__dirname, 'sdn.json'), 'utf8'))
-const results = []
 
 let globalDocID = 100000
 
@@ -170,6 +169,8 @@ module.exports.getOFAC = function() {
 
         nodes.push(currentNode)
     })
+
+    console.log('Returning transformed OFAC...')
 
     return {
         nodes: nodes,
