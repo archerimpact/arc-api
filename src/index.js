@@ -88,6 +88,8 @@ app.get('/', (req, res) => {
 app.get('/data/entity', async function(req, res) {
     const id = req.query.id
     const name = req.query.name
+
+    console.log(id)
     
     let data
     if (id) {
