@@ -1,11 +1,8 @@
 'use strict'
 
-const schema = require('./userSchema')
-const User = schema.User
+const User = require('./mongooseConnector').User
+const { success, error, authError } = require('../util')
 
-const archutil = require('../util')
-const success = archutil.success
-const error   = archutil.error
 
 // TODO validate usernames
 function usernameIsValid(str) {

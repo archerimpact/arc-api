@@ -6,10 +6,10 @@ exports.success = function success(msg, res) {
 
 
 exports.error = function error(msg, res) {
-    return res.status(400).json({ success: false, error: msg })
+    return res.status(400).json({ success: false, message: msg })
 }
 
 
 exports.authError = function authError(msg, res) {
-    return res.status(401).json({ success: false, error: 'Unauthorized: ' + msg })
+    return res.status(401).json({ success: false, message: 'Unauthorized: ' + msg })
 }

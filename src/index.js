@@ -85,7 +85,7 @@ const app = express()
 const passport = require('passport')
 const LocalStrategy = require('passport-local')
 const auth = require('./server/user/passportConnector')
-const schema = require('./server/user/userSchema')
+const schema = require('./server/user/mongooseConnector')
 const User = schema.User
 
 app.use(bodyParser.urlencoded({extended: true, limit: '100mb', parameterLimit: 50000}))
@@ -95,6 +95,8 @@ const credentials = require('./server/credentials')
 const mongoose = require('mongoose')
 const mongoURL = 'mongodb://arch2:' + credentials.mongoPassword + '@ds263639.mlab.com:63639/architect'
 mongoose.connect(mongoURL)
+
+const { success, error, authError } = require('./server/util')
 
 app.use(function (req, res, next) {
     // Website you wish to allow to connect
@@ -129,9 +131,7 @@ app.listen(8080, '127.0.0.1', () => {
     console.log('Server has started')
 })
 
-app.get('/', (req, res) => {
-    return res.status(200).json({ success: true, message: 'Server is running!' })
-})
+
 
 app.get('/data/entity', async function(req, res) {
     const id = req.query.id
@@ -164,3 +164,17 @@ app.post('/auth/login',    passport.authenticate('local'), auth.login)
 app.get('/auth/logout',    auth.logout)
 app.post('/auth/register', auth.register)
 app.get('/auth/verify',    auth.verify)
+
+/* ================ Data ================ */
+
+
+
+
+/* ================ General ================ */
+app.get('/', (req, res) => {
+    return success('Server is running!', res)
+})
+
+app.get('*', (req, res) => {
+    return res.status(404)
+})
