@@ -82,12 +82,6 @@ const bodyParser = require('body-parser')
 const session = require('express-session')
 const app = express()
 
-const passport = require('passport')
-const LocalStrategy = require('passport-local')
-const auth = require('./server/user/passportConnector')
-const schema = require('./server/user/mongooseConnector')
-const User = schema.User
-
 app.use(bodyParser.urlencoded({extended: true, limit: '100mb', parameterLimit: 50000}))
 app.use(bodyParser.json({limit: '100mb'}))
 
@@ -153,17 +147,8 @@ app.get('/data/entity', async function(req, res) {
 })
 
 
-/* ================ User Authentication ================ */
-passport.use(new LocalStrategy(User.authenticate()))
-passport.serializeUser(User.serializeUser())
-passport.deserializeUser(User.deserializeUser())
-app.use(passport.initialize())
-app.use(passport.session())
+app.use('/auth', require('./server/user/index')(app))
 
-app.post('/auth/login',    passport.authenticate('local'), auth.login)
-app.get('/auth/logout',    auth.logout)
-app.post('/auth/register', auth.register)
-app.get('/auth/verify',    auth.verify)
 
 /* ================ Data ================ */
 
