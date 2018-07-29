@@ -51,8 +51,6 @@ app.listen(8080, '127.0.0.1', () => {
     console.log('Server has started')
 })
 
-
-
 app.use('/auth', require('./server/user/index')(app))
 app.use('/data', require('./server/graph_data/index')(app))
 

@@ -1,5 +1,5 @@
 const { Connection, query, db } = require('stardog')
-const Q = require('./RDFQuery')
+const Q = require('./sparqlBuilder')
 const DEBUG = false
 
 const conn = new Connection({

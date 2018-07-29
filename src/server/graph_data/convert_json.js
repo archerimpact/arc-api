@@ -1,6 +1,6 @@
 'use strict'
 
-const stardog = require('../../integrations/stardog/query_construction')
+const stardog = require('../../integrations/stardog/actions')
 const uuid = require('node-uuid')
 
 const localToGlobalIDMap = {}
