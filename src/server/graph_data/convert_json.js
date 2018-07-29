@@ -33,8 +33,9 @@ async function loadEntitiesFromData(data) {
         await stardog.addClaimRelation(claimID, link['relationshipType'])
     }))
 
-    await stardog.execute()
-    
+    const response = await stardog.execute()
+    return response.ok
+
 }
 
 function fixNodeID(node) {

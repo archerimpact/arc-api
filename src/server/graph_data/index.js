@@ -1,8 +1,11 @@
 'use strict'
 
 const express = require('express')
-const converter = require('./convert_json')
 const router = express.Router()
+
+const { success, error } = require('../util')
+const converter = require('./convert_json')
+const { verifyAuth } = require('../user/verifyAuth')
 
 /**
  * Temporary method for mirroring the current ArchAPI response format.
@@ -69,7 +72,17 @@ module.exports = function(app) {
 
         data = zipForFrontend(data)
         // return res.status(200).json({ success: true, message: data })
-        return res.status(200).json(data)
+        return success(data, res)
+    })
+
+    router.post('/entity', async function (req, res) {
+        const ok = await converter.loadEntitiesFromData(req.body)
+        if (ok) {
+            return success('Uploaded successfully', res)
+        }
+        else {
+            return error('An error occcured', res)
+        }
     })
 
     return router
