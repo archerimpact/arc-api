@@ -2,6 +2,8 @@
 
 const stardog = require('./stardog-connectors/query_construction')
 const uuid = require('node-uuid')
+const es = require('elasticsearch')
+const elastic_helper = require('./elastic-connectors/elastic')
 
 const localToGlobalIDMap = {}
 
@@ -34,7 +36,21 @@ async function loadEntitiesFromData(data) {
     }))
 
     await stardog.execute()
-    
+
+    //calculate link count for each node
+
+    //load nodes into elastic
+    try {
+        await elastic_helper.delete_index('entities');
+    } catch(err) {
+        console.log("Unable to delete index. Error: " + err)
+    }
+
+    await elastic_helper.create_index('entities');
+    await elastic_helper.bulk_add(nodes, 'entities', 'entry', 'fixed_ref');
+    let count = await elastic_helper.indexing_stats('entities');
+    console.log(count)
+
 }
 
 function fixNodeID(node) {

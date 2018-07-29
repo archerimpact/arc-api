@@ -2,6 +2,7 @@
 
 const OFAC = require('./ofac/sanctionsexplorer-parser')
 const converter = require('./convert_json')
+const elasticHelper = require('./elastic-connectors/elastic.js')
 
 process.on('unhandledRejection', err => {
     console.log("Caught unhandledRejection:")
@@ -101,5 +102,25 @@ app.get('/data/entity', async function(req, res) {
 
     data = zipForFrontend(data)
     // return res.status(200).json({ success: true, message: data })
+    return res.status(200).json(data)
+})
+
+app.get('/search', async function(req, res) {
+    const queryStr = req.query.q
+    console.log(queryStr)
+
+    const fullQuery = {
+        index: "entities",
+        body: {
+            multi_match: {
+                query: queryStr,
+                fields: ["name"],
+            }
+        }
+    };
+
+    const data = await elasticHelper.search_ES(fullQuery)
+    console.log(data)
+
     return res.status(200).json(data)
 })
