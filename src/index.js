@@ -1,5 +1,7 @@
 'use strict'
 
+const elasticHelper = require('./integrations/elasticsearch/elastic')
+
 process.on('unhandledRejection', err => {
     console.log("Caught unhandledRejection: ")
     console.log(err)
@@ -20,6 +22,7 @@ const { success, error, authError } = require('./server/util')
 
 app.use(function (req, res, next) {
     // Website you wish to allow to connect
+    //TODO: change to production url when deployed
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
     // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
@@ -56,6 +59,27 @@ app.use('/data', require('./server/graph_data/index')(app))
 
 app.get('/', (req, res) => {
     return success('Server is running!', res)
+})
+
+app.get('/search', async function(req, res) {
+    const queryStr = req.query.q
+    console.log(queryStr)
+
+    const fullQuery = {
+        index: "entities",
+        body: {
+            query: {
+                match: {
+                  label: queryStr
+                }
+              }
+        }
+    };
+
+    const data = await elasticHelper.search_ES(fullQuery)
+    console.log(data)
+
+    return res.status(200).json(data)
 })
 
 app.get('*', (req, res) => {
