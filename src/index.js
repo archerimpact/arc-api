@@ -61,25 +61,26 @@ app.get('/', (req, res) => {
     return success('Server is running!', res)
 })
 
-// app.get('/search', async function(req, res) {
-//     const queryStr = req.query.q
-//     console.log(queryStr)
+app.get('/search', async function(req, res) {
+    const queryStr = req.query.q
+    console.log(queryStr)
 
-//     const fullQuery = {
-//         index: "entities",
-//         body: {
-//             multi_match: {
-//                 query: queryStr,
-//                 fields: ["name"],
-//             }
-//         }
-//     };
+    const fullQuery = {
+        index: "entities",
+        body: {
+            query: {
+                match: {
+                  label: queryStr
+                }
+              }
+        }
+    };
 
-//     const data = await elasticHelper.search_ES(fullQuery)
-//     console.log(data)
+    const data = await elasticHelper.search_ES(fullQuery)
+    console.log(data)
 
-//     return res.status(200).json(data)
-// })
+    return res.status(200).json(data)
+})
 
 app.get('*', (req, res) => {
     return res.status(404)
