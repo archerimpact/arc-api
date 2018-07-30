@@ -136,6 +136,22 @@ async function getIDFromName(name) {
     return response
 }
 
+async function getStardogSearchResults(queryStr) {
+    //Get stardog raw search results for queryStr
+    //TODO: improve SPARQL query and add wrapper for raw db query
+
+    //Vanilla search query from stardog docs
+    const fullQuery = `SELECT DISTINCT ?s ?score WHERE { ?s ?p ?l. (?l ?score) <tag:stardog:api:property:textMatch> '${queryStr}'. }`
+
+    //Basic execute query for str above. To be replaced by wrapper
+    const response = await query.execute(conn, 'myDB', fullQuery)
+
+    if (response.ok !== true) {
+        console.log(response)
+    }
+    return response
+}
+
 
 module.exports = {
     addPropertyClaim: addPropertyClaim,
@@ -151,4 +167,5 @@ module.exports = {
     getOutgoingLinks: getOutgoingLinks,
     selectAll: selectAll,
     findIDByName: getIDFromName,
+    getStardogSearchResults: getStardogSearchResults,
 }

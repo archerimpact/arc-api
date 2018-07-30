@@ -6,6 +6,7 @@ const router = express.Router()
 const { success, error } = require('../util')
 const converter = require('./convert_json')
 const { verifyAuth } = require('../user/verifyAuth')
+const elasticHelper = require('../../integrations/elasticsearch/elastic')
 
 /**
  * Temporary method for mirroring the current ArchAPI response format.
@@ -83,6 +84,40 @@ module.exports = function(app) {
         else {
             return error('An error occcured', res)
         }
+    })
+
+    // router.get('/search', async function(req, res) {
+    //     //Endpoint to wrap elasticsearch queries: /data/search?q=<queryStr>
+    //
+    //     const queryStr = req.query.q
+    //     console.log(queryStr)
+    //
+    //     const fullQuery = {
+    //         index: "entities",
+    //         body: {
+    //             query: {
+    //                 match: {
+    //                     label: queryStr
+    //                 }
+    //             }
+    //         }
+    //     }
+    //
+    //     const data = await elasticHelper.search_ES(fullQuery)
+    //     console.log(data)
+    //
+    //     return res.status(200).json(data)
+    // })
+
+    router.get('/search-graph', async function(req, res) {
+        //Endpoint to wrap stardog search: /data/search-graph?q=<queryStr>
+        //TODO: Add security for injection attack
+
+        const queryStr = req.query.q
+        console.log(`Searching graph for: ${queryStr}`)
+
+        const data = await converter.getSearch(queryStr)
+        return res.status(200).json(data)
     })
 
     return router

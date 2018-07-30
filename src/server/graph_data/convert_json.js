@@ -37,10 +37,14 @@ async function loadEntitiesFromData(data) {
 
     const response = await stardog.execute()
 
-    //TODO: calculate link count for each node
+    return response.ok
+}
 
-    //load nodes into elastic
-    /*
+async function loadElastic(nodes, links) {
+    //load nodes into elastic index titled "entities"
+
+    //TODO: calculate link count for each node
+    //TODO: remove delete index in production for multiple datasets
     try {
         await elasticHelper.delete_index('entities');
     } catch(err) {
@@ -51,9 +55,6 @@ async function loadEntitiesFromData(data) {
     await elasticHelper.bulk_add(nodes, 'entities', 'entry', 'fixed_ref');
     let count = await elasticHelper.indexing_stats('entities');
     console.log(count)
-    */
-
-    return response.ok
 }
 
 function fixNodeID(node) {
@@ -217,9 +218,26 @@ async function getLinkCount(entityID) {
     return incoming.body.results.bindings.length + outgoing.body.results.bindings.length
 }
 
+async function getSearch(queryStr) {
+    //TODO: format response properly and use more sophisticated SPARQL query
+
+    //Search stardog literals
+    const resp = await stardog.getStardogSearchResults(queryStr)
+
+    //Format response into rows
+    const rows = resp.body.results.bindings
+
+    //Retrieve id's and filter out claim ids
+    const entityIDs = rows.map(row => row.s.value).filter(id => !(id.includes('claim')))
+
+    //Map all ids to get their corresponding entities
+    return await Promise.all(entityIDs.map(getEntityByID))
+}
+
 module.exports = {
     loadEntitiesFromData: loadEntitiesFromData,
     getEntityByID: getEntityByID,
     getEntitiesByIDs: getEntitiesByIDs,
     getEntityByName: getEntityByName,
+    getSearch: getSearch,
 }

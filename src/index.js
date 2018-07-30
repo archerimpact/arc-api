@@ -32,8 +32,8 @@ app.use(function (req, res, next) {
     // to the API (e.g. in case you use sessions)
     res.setHeader('Access-Control-Allow-Credentials', true)
     // Pass to next layer of middleware
-    next();
-});
+    next()
+})
 
 const sessionOptions = {
     resave: false,              // don't save session if unmodified
@@ -59,27 +59,6 @@ app.use('/data', require('./server/graph_data/index')(app))
 
 app.get('/', (req, res) => {
     return success('Server is running!', res)
-})
-
-app.get('/search', async function(req, res) {
-    const queryStr = req.query.q
-    console.log(queryStr)
-
-    const fullQuery = {
-        index: "entities",
-        body: {
-            query: {
-                match: {
-                  label: queryStr
-                }
-              }
-        }
-    };
-
-    const data = await elasticHelper.search_ES(fullQuery)
-    console.log(data)
-
-    return res.status(200).json(data)
 })
 
 app.get('*', (req, res) => {
